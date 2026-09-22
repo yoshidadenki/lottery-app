@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>数字抽選・購入アプリ</title>
+  <style>
+    :root{
+      --bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
+      --accent:#2563eb;--accent2:#1d4ed8;--danger:#dc2626;--chip:#eef2ff;
+      --chipText:#1e3a8a;--shadow:0 8px 28px rgba(0,0,0,.08);--radius:20px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .wrap{max-width:820px;margin:0 auto;padding:20px 16px calc(32px + env(safe-area-inset-bottom))}
+    h1{font-size:28px;margin:8px 0 4px}
+    .sub{color:var(--muted);font-size:14px;margin-bottom:18px;line-height:1.7}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+    .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .mode-btn{border:2px solid var(--line);background:#fff;color:var(--text);border-radius:16px;padding:14px 10px;font-size:15px;font-weight:700;cursor:pointer}
+    .mode-btn.active{border-color:var(--accent);background:#eff6ff;color:var(--accent2)}
+    .status{margin-top:14px;font-size:14px;color:var(--muted);min-height:22px;line-height:1.6}
+    .draw-area{text-align:center;padding:8px 0 4px}.label{font-size:13px;color:var(--muted);margin-bottom:10px}
+    .numbers{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;min-height:64px;align-items:center}
+    .ball{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:21px;font-weight:800;background:var(--chip);color:var(--chipText);border:1px solid #c7d2fe}
+    .placeholder{color:#9ca3af;font-size:15px}
+    .actions{display:grid;grid-template-columns:1fr;gap:10px;margin-top:18px}
+    button.primary,button.danger{border:none;border-radius:16px;padding:16px 14px;font-size:17px;font-weight:800;cursor:pointer;width:100%}
+    button.primary{background:var(--accent);color:#fff}button.danger{background:#fee2e2;color:#991b1b}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.row h2{font-size:18px;margin:0}
+    .count{color:var(--muted);font-size:13px;white-space:nowrap}
+    .remaining{display:flex;flex-wrap:wrap;gap:7px}.mini{min-width:34px;height:34px;padding:0 8px;border-radius:10px;display:grid;place-items:center;background:#f9fafb;border:1px solid var(--line);font-size:14px;font-weight:700}
+    .history,.ticket-list{display:flex;flex-direction:column;gap:10px}
+    .hist-item,.ticket-item{border:1px solid var(--line);border-radius:14px;padding:12px;background:#fafafa}
+    .hist-top,.ticket-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+    .hist-title,.ticket-title{font-weight:800;font-size:14px}.hist-mode{font-size:12px;color:var(--muted)}
+    .hist-nums,.ticket-nums{font-size:16px;font-weight:800;letter-spacing:.06em;word-spacing:.12em;line-height:1.8}
+    .leftover,.audit{padding:14px;border-radius:14px;margin-top:12px;font-weight:800;text-align:center;line-height:1.7}
+    .leftover{background:#fff7ed;border:1px solid #fed7aa}.audit{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}.audit.error{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+    .range-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px;margin-bottom:14px}
+    .range-box{border:1px solid var(--line);border-radius:12px;padding:12px 10px;background:#fafafa;font-size:14px;text-align:center;font-weight:800}
+    .note{font-size:12px;color:var(--muted);line-height:1.7;margin-top:12px}
+    @media (min-width:680px){.mode-grid{grid-template-columns:repeat(4,1fr)}.actions{grid-template-columns:2fr 1fr}.range-grid{grid-template-columns:repeat(4,1fr)}}
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <h1>数字抽選・購入アプリ</h1>
+  <div class="sub">数字は暗号学的乱数でランダム。構造は研究結果で固定。ミニロト31数字・ビンゴ5 40数字をFull Coverageします。</div>
+
+  <section class="card">
+    <div class="mode-grid">
+      <button class="mode-btn active" id="noRepeatBtn" type="button">重複なし</button>
+      <button class="mode-btn" id="resetEachBtn" type="button">毎回リセット</button>
+      <button class="mode-btn" id="miniLotoBtn" type="button">ミニロト購入専用</button>
+      <button class="mode-btn" id="bingoBtn" type="button">ビンゴ5購入専用</button>
+    </div>
+    <div class="status" id="statusText"></div>
+  </section>
+
+  <section class="card" id="normalDrawCard">
+    <div class="draw-area">
+      <div class="label">今回の抽選結果</div>
+      <div class="numbers" id="result"><div class="placeholder">「5個引く」をタップしてください</div></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="drawBtn" type="button">5個引く</button>
+      <button class="danger" id="resetBtn" type="button">全部リセット</button>
+    </div>
+  </section>
+
+  <section class="card" id="miniLotoCard" style="display:none">
+    <div class="row"><h2>ミニロト 7口セット</h2><div class="count">31/31 Full Coverage</div></div>
+    <div class="range-grid">
+      <div class="range-box">1〜5</div><div class="range-box">6〜10</div>
+      <div class="range-box">11〜15</div><div class="range-box">16〜20</div>
+      <div class="range-box">21〜25</div><div class="range-box">26〜30</div>
+      <div class="range-box">31</div>
+    </div>
+    <div class="ticket-list" id="miniTickets"><div class="placeholder">「7口作成」をタップしてください</div></div>
+    <div class="leftover" id="leftoverBox" style="display:none"></div>
+    <div class="audit" id="miniAudit" style="display:none"></div>
+    <div class="actions">
+      <button class="primary" id="makeMiniBtn" type="button">7口作成</button>
+      <button class="danger" id="miniResetBtn" type="button">リセット</button>
+    </div>
+    <div class="note">1〜31をランダムに並べ、1〜6口目で30数字を1回ずつ使用します。残った1数字を7口目へ入れ、既存6口のうち異なる4口から1数字ずつ選びます。31/31 Full Coverage、incidence 35、excess 4、4-edge-star構造を維持します。</div>
+  </section>
+
+  <section class="card" id="bingoCard" style="display:none">
+    <div class="row"><h2>ビンゴ5 5口セット</h2><div class="count">40/40 Full Coverage</div></div>
+    <div class="range-grid">
+      <div class="range-box">1〜5</div><div class="range-box">6〜10</div>
+      <div class="range-box">11〜15</div><div class="range-box">16〜20</div>
+      <div class="range-box">21〜25</div><div class="range-box">26〜30</div>
+      <div class="range-box">31〜35</div><div class="range-box">36〜40</div>
+    </div>
+    <div class="ticket-list" id="bingoTickets"><div class="placeholder">「5口作成」をタップしてください</div></div>
+    <div class="audit" id="bingoAudit" style="display:none"></div>
+    <div class="actions">
+      <button class="primary" id="makeBingoBtn" type="button">5口作成</button>
+      <button class="danger" id="bingoResetBtn" type="button">リセット</button>
+    </div>
+    <div class="note">各レンジの5数字をそれぞれ独立にランダム化し、5口へ1数字ずつ配ります。各口は8数字、5口全体では1〜40をちょうど1回ずつ使用します。</div>
+  </section>
+
+  <section class="card" id="remainingCard">
+    <div class="row"><h2>残り数字</h2><div class="count" id="remainingCount"></div></div>
+    <div class="remaining" id="remaining"></div>
+    <div class="note">重複なしモードでは、一度引いた数字は次回以降の候補から除外されます。</div>
+  </section>
+
+  <section class="card" id="historyCard">
+    <div class="row"><h2>抽選履歴</h2><div class="count" id="historyCount">0回</div></div>
+    <div class="history" id="history"><div class="placeholder">まだ履歴はありません</div></div>
+  </section>
+</main>
+
+<script>
+  const ALL31 = Array.from({length:31},(_,i)=>i+1);
+  const BINGO_RANGES = [
+    [1,2,3,4,5],[6,7,8,9,10],[11,12,13,14,15],[16,17,18,19,20],
+    [21,22,23,24,25],[26,27,28,29,30],[31,32,33,34,35],[36,37,38,39,40]
+  ];
+
+  let mode="noRepeat";
+  let remaining=[...ALL31];
+  let history=[];
+
+  const $=id=>document.getElementById(id);
+  const modeButtons={
+    noRepeat:$("noRepeatBtn"),
+    resetEach:$("resetEachBtn"),
+    miniLoto:$("miniLotoBtn"),
+    bingo:$("bingoBtn")
+  };
+  const cards={miniLoto:$("miniLotoCard"),bingo:$("bingoCard")};
+  const normalDrawCard=$("normalDrawCard");
+  const remainingCard=$("remainingCard");
+  const historyCard=$("historyCard");
+  const statusText=$("statusText");
+
+  function secureRandomInt(maxExclusive){
+    if(!Number.isInteger(maxExclusive)||maxExclusive<=0) throw new Error("maxExclusive must be a positive integer");
+    const RANGE=0x100000000;
+    const limit=Math.floor(RANGE/maxExclusive)*maxExclusive;
+    const buffer=new Uint32Array(1);
+    while(true){
+      crypto.getRandomValues(buffer);
+      const x=buffer[0];
+      if(x<limit) return x%maxExclusive;
+    }
+  }
+
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j=secureRandomInt(i+1);
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function fmt(n){return String(n).padStart(2,"0");}
+
+  function setMode(next){
+    mode=next;
+    Object.entries(modeButtons).forEach(([m,btn])=>btn.classList.toggle("active",mode===m));
+    renderAll();
+  }
+
+  function drawFive(){
+    const pool=mode==="noRepeat"?remaining:ALL31;
+    if(mode==="noRepeat"&&remaining.length<5){
+      alert(`残りは${remaining.length}個です。5個引けないため、リセットしてください。`);
+      return;
+    }
+    const picked=shuffle(pool).slice(0,5).sort((a,b)=>a-b);
+    if(mode==="noRepeat"){
+      const s=new Set(picked);
+      remaining=remaining.filter(n=>!s.has(n));
+    }
+    history.unshift({nums:picked,mode});
+    $("result").innerHTML=picked.map(n=>`<div class="ball">${fmt(n)}</div>`).join("");
+    renderAll();
+  }
+
+  function resetNormal(){
+    remaining=[...ALL31];
+    history=[];
+    $("result").innerHTML=`<div class="placeholder">「5個引く」をタップしてください</div>`;
+    renderAll();
+  }
+
+  function renderTickets(targetId,tickets){
+    $(targetId).innerHTML=tickets.map((t,i)=>`<div class="ticket-item"><div class="ticket-top"><div class="ticket-title">${i+1}口目</div></div><div class="ticket-nums">${t.map(fmt).join("　")}</div></div>`).join("");
+  }
+
+  function countUsage(tickets){
+    const counts={};
+    for(const n of tickets.flat()) counts[n]=(counts[n]||0)+1;
+    return counts;
+  }
+
+  function intersectionSize(a,b){
+    const setA=new Set(a);
+    return b.filter(x=>setA.has(x)).length;
+  }
+
+  function setAudit(id,valid,okHtml,errorHtml){
+    const el=$(id);
+    el.style.display="block";
+    el.classList.toggle("error",!valid);
+    el.innerHTML=valid?okHtml:errorHtml;
+  }
+
+  function makeMini(){
+    const shuffled=shuffle(ALL31);
+    const used=shuffled.slice(0,30);
+    const leftover=shuffled[30];
+    const tickets=[];
+    for(let i=0;i<6;i++) tickets.push(used.slice(i*5,i*5+5).sort((a,b)=>a-b));
+
+    const selectedTicketIndexes=shuffle([0,1,2,3,4,5]).slice(0,4);
+    const extraFour=selectedTicketIndexes.map(i=>tickets[i][secureRandomInt(tickets[i].length)]);
+    tickets.push([leftover,...extraFour].sort((a,b)=>a-b));
+    renderTickets("miniTickets",tickets);
+
+    $("leftoverBox").style.display="block";
+    $("leftoverBox").innerHTML=`7口目へ入れた残り数字：${fmt(leftover)}<br><span style="font-size:13px;font-weight:700">2回使用される数字：${[...extraFour].sort((a,b)=>a-b).map(fmt).join("・")}</span>`;
+
+    const flat=tickets.flat();
+    const unique=new Set(flat);
+    const counts=countUsage(tickets);
+    const repeatedNumbers=Object.entries(counts).filter(([_,c])=>c===2).map(([n])=>Number(n));
+    const singleNumbers=Object.entries(counts).filter(([_,c])=>c===1).map(([n])=>Number(n));
+    const coverageOK=flat.length===35&&unique.size===31&&Math.min(...flat)===1&&Math.max(...flat)===31;
+    const usageOK=repeatedNumbers.length===4&&singleNumbers.length===27&&Object.values(counts).every(c=>c===1||c===2);
+
+    const intersections=[];
+    for(let i=0;i<7;i++){
+      for(let j=i+1;j<7;j++) intersections.push({i,j,size:intersectionSize(tickets[i],tickets[j])});
+    }
+    const centerEdges=intersections.filter(x=>x.j===6&&x.size===1);
+    const invalidIntersections=intersections.filter(x=>x.j===6?!(x.size===0||x.size===1):x.size!==0);
+    const starOK=centerEdges.length===4&&invalidIntersections.length===0;
+    const valid=coverageOK&&usageOK&&starOK;
+
+    setAudit("miniAudit",valid,
+      `チェックOK<br>31/31 Full Coverage<br>incidence = 35<br>excess = 4<br>重複数字 = 4個（各2回）<br>4-edge-star = PASS<br>Random Source = crypto.getRandomValues()`,
+      `チェックエラー<br>Coverage：${coverageOK?"PASS":"FAIL"}<br>Usage：${usageOK?"PASS":"FAIL"}<br>4-edge-star：${starOK?"PASS":"FAIL"}`
+    );
+  }
+
+  function resetMini(){
+    $("miniTickets").innerHTML=`<div class="placeholder">「7口作成」をタップしてください</div>`;
+    $("leftoverBox").style.display="none";
+    $("miniAudit").style.display="none";
+    $("miniAudit").classList.remove("error");
+    $("miniAudit").textContent="";
+  }
+
+  function makeBingo(){
+    const shuffledRanges=BINGO_RANGES.map(r=>shuffle(r));
+    const tickets=Array.from({length:5},()=>[]);
+    for(let col=0;col<8;col++){
+      for(let row=0;row<5;row++) tickets[row].push(shuffledRanges[col][row]);
+    }
+    renderTickets("bingoTickets",tickets);
+
+    const flat=tickets.flat();
+    const unique=new Set(flat);
+    const counts=countUsage(tickets);
+    const usageOK=Array.from({length:40},(_,i)=>i+1).every(n=>counts[n]===1);
+    const rangeOK=tickets.every(ticket=>ticket.every((n,col)=>BINGO_RANGES[col].includes(n)));
+    const valid=flat.length===40&&unique.size===40&&usageOK&&rangeOK;
+
+    setAudit("bingoAudit",valid,
+      `チェックOK<br>40/40 Full Coverage<br>incidence = 40<br>excess = 0<br>1〜40を各1回使用<br>各セル合法範囲 = PASS<br>Random Source = crypto.getRandomValues()`,
+      `チェックエラー<br>Coverage：${unique.size===40?"PASS":"FAIL"}<br>Usage：${usageOK?"PASS":"FAIL"}<br>Cell Range：${rangeOK?"PASS":"FAIL"}`
+    );
+  }
+
+  function resetBingo(){
+    $("bingoTickets").innerHTML=`<div class="placeholder">「5口作成」をタップしてください</div>`;
+    $("bingoAudit").style.display="none";
+    $("bingoAudit").classList.remove("error");
+    $("bingoAudit").textContent="";
+  }
+
+  function renderAll(){
+    const normal=mode==="noRepeat"||mode==="resetEach";
+    normalDrawCard.style.display=normal?"block":"none";
+    Object.entries(cards).forEach(([m,card])=>card.style.display=mode===m?"block":"none");
+    historyCard.style.display=normal?"block":"none";
+
+    if(mode==="noRepeat"){
+      statusText.textContent=`重複なし：引いた数字は除外されます。残り ${remaining.length} 個`;
+      remainingCard.style.display="block";
+    }else if(mode==="resetEach"){
+      statusText.textContent="毎回リセット：毎回1〜31の全数字から5個抽選します。";
+      remainingCard.style.display="none";
+    }else if(mode==="miniLoto"){
+      statusText.textContent="ミニロト購入専用：31/31 Full Coverage＋4-edge-starで7口を作成します。";
+      remainingCard.style.display="none";
+    }else{
+      statusText.textContent="ビンゴ5購入専用：40/40 Full Coverageで5口を作成します。";
+      remainingCard.style.display="none";
+    }
+
+    $("remainingCount").textContent=`${remaining.length}個`;
+    $("remaining").innerHTML=remaining.slice().sort((a,b)=>a-b).map(n=>`<div class="mini">${fmt(n)}</div>`).join("");
+    $("historyCount").textContent=`${history.length}回`;
+
+    if(history.length===0){
+      $("history").innerHTML=`<div class="placeholder">まだ履歴はありません</div>`;
+    }else{
+      $("history").innerHTML=history.map((h,i)=>{
+        const originalNo=history.length-i;
+        const modeName=h.mode==="noRepeat"?"重複なし":"毎回リセット";
+        return `<div class="hist-item"><div class="hist-top"><div class="hist-title">第${originalNo}回</div><div class="hist-mode">${modeName}</div></div><div class="hist-nums">${h.nums.map(fmt).join("　")}</div></div>`;
+      }).join("");
+    }
+  }
+
+  Object.entries(modeButtons).forEach(([m,btn])=>btn.addEventListener("click",()=>setMode(m)));
+  $("drawBtn").addEventListener("click",drawFive);
+  $("resetBtn").addEventListener("click",resetNormal);
+  $("makeMiniBtn").addEventListener("click",makeMini);
+  $("miniResetBtn").addEventListener("click",resetMini);
+  $("makeBingoBtn").addEventListener("click",makeBingo);
+  $("bingoResetBtn").addEventListener("click",resetBingo);
+  renderAll();
+</script>
+</body>
+</html>
