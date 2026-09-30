@@ -42,20 +42,22 @@
     .range-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px;margin-bottom:14px}
     .range-box{border:1px solid var(--line);border-radius:12px;padding:12px 10px;background:#fafafa;font-size:14px;text-align:center;font-weight:800}
     .note{font-size:12px;color:var(--muted);line-height:1.7;margin-top:12px}
-    @media (min-width:680px){.mode-grid{grid-template-columns:repeat(4,1fr)}.actions{grid-template-columns:2fr 1fr}.range-grid{grid-template-columns:repeat(4,1fr)}}
+    @media (min-width:680px){.mode-grid{grid-template-columns:repeat(3,1fr)}.actions{grid-template-columns:2fr 1fr}.range-grid{grid-template-columns:repeat(4,1fr)}}
   </style>
 </head>
 <body>
 <main class="wrap">
   <h1>数字抽選・購入アプリ</h1>
-  <div class="sub">数字は暗号学的乱数でランダム。構造は研究結果で固定。ミニロト31数字・ビンゴ5 40数字をFull Coverageします。</div>
+  <div class="sub">数字は暗号学的乱数でランダム。構造は研究結果で固定。ミニロト・BINGO5でFull CoverageとV4.0を選べます。</div>
 
   <section class="card">
     <div class="mode-grid">
       <button class="mode-btn active" id="noRepeatBtn" type="button">重複なし</button>
       <button class="mode-btn" id="resetEachBtn" type="button">毎回リセット</button>
-      <button class="mode-btn" id="miniLotoBtn" type="button">ミニロト購入専用</button>
-      <button class="mode-btn" id="bingoBtn" type="button">ビンゴ5購入専用</button>
+      <button class="mode-btn" id="miniLotoBtn" type="button">ミニロト Full Coverage</button>
+      <button class="mode-btn" id="miniV4Btn" type="button">ミニロト V4.0</button>
+      <button class="mode-btn" id="bingoBtn" type="button">BINGO5 Full Coverage</button>
+      <button class="mode-btn" id="bingoV4Btn" type="button">BINGO5 V4.0</button>
     </div>
     <div class="status" id="statusText"></div>
   </section>
@@ -89,8 +91,25 @@
     <div class="note">1〜31をランダムに並べ、1〜6口目で30数字を1回ずつ使用します。残った1数字を7口目へ入れ、既存6口のうち異なる4口から1数字ずつ選びます。31/31 Full Coverage、incidence 35、excess 4、4-edge-star構造を維持します。</div>
   </section>
 
+  <section class="card" id="miniV4Card" style="display:none">
+    <div class="row"><h2>ミニロト V4.0 5口セット</h2><div class="count">V4.0 / Random Labels</div></div>
+    <div class="range-grid">
+      <div class="range-box">1〜5</div><div class="range-box">6〜10</div>
+      <div class="range-box">11〜15</div><div class="range-box">16〜20</div>
+      <div class="range-box">21〜25</div><div class="range-box">26〜30</div>
+      <div class="range-box">31</div>
+    </div>
+    <div class="ticket-list" id="miniV4Tickets"><div class="placeholder">「V4.0 5口作成」をタップしてください</div></div>
+    <div class="audit" id="miniV4Audit" style="display:none"></div>
+    <div class="actions">
+      <button class="primary" id="makeMiniV4Btn" type="button">V4.0 5口作成</button>
+      <button class="danger" id="miniV4ResetBtn" type="button">リセット</button>
+    </div>
+    <div class="note">研究済みV4.0の5口構造を固定し、数字ラベルだけを1〜31の範囲でランダムに置換します。過去抽せんやhot/cold numberは使用しません。Full Coverageモードとは別の設計思想です。</div>
+  </section>
+
   <section class="card" id="bingoCard" style="display:none">
-    <div class="row"><h2>ビンゴ5 5口セット</h2><div class="count">40/40 Full Coverage</div></div>
+    <div class="row"><h2>BINGO5 5口セット</h2><div class="count">40/40 Full Coverage</div></div>
     <div class="range-grid">
       <div class="range-box">1〜5</div><div class="range-box">6〜10</div>
       <div class="range-box">11〜15</div><div class="range-box">16〜20</div>
@@ -104,6 +123,23 @@
       <button class="danger" id="bingoResetBtn" type="button">リセット</button>
     </div>
     <div class="note">各レンジの5数字をそれぞれ独立にランダム化し、5口へ1数字ずつ配ります。各口は8数字、5口全体では1〜40をちょうど1回ずつ使用します。</div>
+  </section>
+
+  <section class="card" id="bingoV4Card" style="display:none">
+    <div class="row"><h2>BINGO5 V4.0 5口セット</h2><div class="count">V4.0 / Random Labels</div></div>
+    <div class="range-grid">
+      <div class="range-box">1〜5</div><div class="range-box">6〜10</div>
+      <div class="range-box">11〜15</div><div class="range-box">16〜20</div>
+      <div class="range-box">21〜25</div><div class="range-box">26〜30</div>
+      <div class="range-box">31〜35</div><div class="range-box">36〜40</div>
+    </div>
+    <div class="ticket-list" id="bingoV4Tickets"><div class="placeholder">「V4.0 5口作成」をタップしてください</div></div>
+    <div class="audit" id="bingoV4Audit" style="display:none"></div>
+    <div class="actions">
+      <button class="primary" id="makeBingoV4Btn" type="button">V4.0 5口作成</button>
+      <button class="danger" id="bingoV4ResetBtn" type="button">リセット</button>
+    </div>
+    <div class="note">研究済みV4.0の各セル内の共有構造を固定し、各レンジ内だけで数字ラベルを独立にランダム置換します。これにより各セルの合法範囲とV4.0の重なり方を維持します。</div>
   </section>
 
   <section class="card" id="remainingCard">
@@ -125,6 +161,22 @@
     [21,22,23,24,25],[26,27,28,29,30],[31,32,33,34,35],[36,37,38,39,40]
   ];
 
+  const MINI_V4_TEMPLATE = [
+    [3,20,22,23,25],
+    [10,13,15,17,30],
+    [1,24,26,27,29],
+    [14,16,18,19,28],
+    [2,4,6,7,31]
+  ];
+
+  const BINGO_V4_TEMPLATE = [
+    [1,6,11,16,21,26,31,36],
+    [2,7,12,16,22,26,34,37],
+    [3,7,12,17,21,29,33,36],
+    [4,7,11,17,22,28,33,39],
+    [5,7,15,16,21,27,33,37]
+  ];
+
   let mode="noRepeat";
   let remaining=[...ALL31];
   let history=[];
@@ -134,9 +186,16 @@
     noRepeat:$("noRepeatBtn"),
     resetEach:$("resetEachBtn"),
     miniLoto:$("miniLotoBtn"),
-    bingo:$("bingoBtn")
+    miniV4:$("miniV4Btn"),
+    bingo:$("bingoBtn"),
+    bingoV4:$("bingoV4Btn")
   };
-  const cards={miniLoto:$("miniLotoCard"),bingo:$("bingoCard")};
+  const cards={
+    miniLoto:$("miniLotoCard"),
+    miniV4:$("miniV4Card"),
+    bingo:$("bingoCard"),
+    bingoV4:$("bingoV4Card")
+  };
   const normalDrawCard=$("normalDrawCard");
   const remainingCard=$("remainingCard");
   const historyCard=$("historyCard");
@@ -262,6 +321,72 @@
     $("miniAudit").textContent="";
   }
 
+  function makeMiniV4(){
+    const sourceLabels=[...new Set(MINI_V4_TEMPLATE.flat())].sort((a,b)=>a-b);
+    const targetLabels=shuffle(ALL31).slice(0,sourceLabels.length);
+    const mapping=new Map(sourceLabels.map((n,i)=>[n,targetLabels[i]]));
+    const tickets=MINI_V4_TEMPLATE.map(ticket=>ticket.map(n=>mapping.get(n)).sort((a,b)=>a-b));
+    renderTickets("miniV4Tickets",tickets);
+
+    const mappedValues=[...mapping.values()];
+    const mappingOK=mapping.size===sourceLabels.length&&new Set(mappedValues).size===sourceLabels.length&&mappedValues.every(n=>ALL31.includes(n));
+    const expected=MINI_V4_TEMPLATE.map(ticket=>ticket.map(n=>mapping.get(n)).sort((a,b)=>a-b));
+    const structureOK=JSON.stringify(tickets)===JSON.stringify(expected);
+    const ticketOK=tickets.length===5&&tickets.every(t=>t.length===5&&new Set(t).size===5);
+    const distinctOK=new Set(tickets.map(t=>t.join(','))).size===5;
+    const valid=mappingOK&&structureOK&&ticketOK&&distinctOK;
+
+    setAudit("miniV4Audit",valid,
+      `チェックOK<br>V4.0 Structure = PASS<br>5口すべて合法・distinct = PASS<br>Random Label Bijection = PASS<br>Random Source = crypto.getRandomValues()`,
+      `チェックエラー<br>V4.0 Structure：${structureOK?"PASS":"FAIL"}<br>Ticket Legality：${ticketOK&&distinctOK?"PASS":"FAIL"}<br>Label Bijection：${mappingOK?"PASS":"FAIL"}`
+    );
+  }
+
+  function resetMiniV4(){
+    $("miniV4Tickets").innerHTML=`<div class="placeholder">「V4.0 5口作成」をタップしてください</div>`;
+    $("miniV4Audit").style.display="none";
+    $("miniV4Audit").classList.remove("error");
+    $("miniV4Audit").textContent="";
+  }
+
+  function sameColumnPartition(templateTickets,generatedTickets,col){
+    for(let a=0;a<templateTickets.length;a++){
+      for(let b=a+1;b<templateTickets.length;b++){
+        const sourceSame=templateTickets[a][col]===templateTickets[b][col];
+        const generatedSame=generatedTickets[a][col]===generatedTickets[b][col];
+        if(sourceSame!==generatedSame) return false;
+      }
+    }
+    return true;
+  }
+
+  function makeBingoV4(){
+    const mappings=BINGO_RANGES.map(range=>{
+      const targets=shuffle(range);
+      return new Map(range.map((n,i)=>[n,targets[i]]));
+    });
+    const tickets=BINGO_V4_TEMPLATE.map(ticket=>ticket.map((n,col)=>mappings[col].get(n)));
+    renderTickets("bingoV4Tickets",tickets);
+
+    const rangeOK=tickets.every(ticket=>ticket.every((n,col)=>BINGO_RANGES[col].includes(n)));
+    const partitionOK=BINGO_RANGES.every((_,col)=>sameColumnPartition(BINGO_V4_TEMPLATE,tickets,col));
+    const mappingOK=mappings.every((m,col)=>m.size===5&&new Set([...m.values()]).size===5&&[...m.values()].every(n=>BINGO_RANGES[col].includes(n)));
+    const distinctOK=new Set(tickets.map(t=>t.join(','))).size===5;
+    const valid=rangeOK&&partitionOK&&mappingOK&&distinctOK;
+
+    setAudit("bingoV4Audit",valid,
+      `チェックOK<br>V4.0 Cell-Partition Structure = PASS<br>5口すべてdistinct = PASS<br>各セル合法範囲 = PASS<br>Random Label Bijection = PASS<br>Random Source = crypto.getRandomValues()`,
+      `チェックエラー<br>V4.0 Structure：${partitionOK?"PASS":"FAIL"}<br>Cell Range：${rangeOK?"PASS":"FAIL"}<br>Label Bijection：${mappingOK?"PASS":"FAIL"}<br>Distinct：${distinctOK?"PASS":"FAIL"}`
+    );
+  }
+
+  function resetBingoV4(){
+    $("bingoV4Tickets").innerHTML=`<div class="placeholder">「V4.0 5口作成」をタップしてください</div>`;
+    $("bingoV4Audit").style.display="none";
+    $("bingoV4Audit").classList.remove("error");
+    $("bingoV4Audit").textContent="";
+  }
+
   function makeBingo(){
     const shuffledRanges=BINGO_RANGES.map(r=>shuffle(r));
     const tickets=Array.from({length:5},()=>[]);
@@ -303,10 +428,16 @@
       statusText.textContent="毎回リセット：毎回1〜31の全数字から5個抽選します。";
       remainingCard.style.display="none";
     }else if(mode==="miniLoto"){
-      statusText.textContent="ミニロト購入専用：31/31 Full Coverage＋4-edge-starで7口を作成します。";
+      statusText.textContent="ミニロト Full Coverage：31/31 Full Coverage＋4-edge-starで7口を作成します。";
+      remainingCard.style.display="none";
+    }else if(mode==="miniV4"){
+      statusText.textContent="ミニロト V4.0：研究済みV4.0構造を固定し、数字ラベルだけランダムにして5口を作成します。";
+      remainingCard.style.display="none";
+    }else if(mode==="bingo"){
+      statusText.textContent="BINGO5 Full Coverage：40/40 Full Coverageで5口を作成します。";
       remainingCard.style.display="none";
     }else{
-      statusText.textContent="ビンゴ5購入専用：40/40 Full Coverageで5口を作成します。";
+      statusText.textContent="BINGO5 V4.0：研究済みV4.0のセル共有構造を固定し、各レンジ内の数字ラベルだけランダムにして5口を作成します。";
       remainingCard.style.display="none";
     }
 
@@ -330,8 +461,12 @@
   $("resetBtn").addEventListener("click",resetNormal);
   $("makeMiniBtn").addEventListener("click",makeMini);
   $("miniResetBtn").addEventListener("click",resetMini);
+  $("makeMiniV4Btn").addEventListener("click",makeMiniV4);
+  $("miniV4ResetBtn").addEventListener("click",resetMiniV4);
   $("makeBingoBtn").addEventListener("click",makeBingo);
   $("bingoResetBtn").addEventListener("click",resetBingo);
+  $("makeBingoV4Btn").addEventListener("click",makeBingoV4);
+  $("bingoV4ResetBtn").addEventListener("click",resetBingoV4);
   renderAll();
 </script>
 </body>
