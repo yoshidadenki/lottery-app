@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#111827">
-<title>数字抽選・購入アプリ</title>
+<title>LOTTERY MASTER | Six Models V1.1</title>
 <style>
 :root {
   --bg:#f3f4f6;--card:#fff;--text:#111827;
@@ -67,11 +67,12 @@ h2{font-size:18px}
 @media(min-width:680px){
   .mode-grid{grid-template-columns:repeat(3,1fr)}
 }
+.model-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:72px}.model-name{font-size:17px;letter-spacing:.07em}.model-btn small{font-size:11px;font-weight:600;color:var(--muted)}.model-btn.active small{color:var(--accent)}
 </style>
 </head>
 <body>
 <main class="wrap">
-<h1>数字抽選・購入アプリ</h1>
+<h1>LOTTERY MASTER</h1><p class="sub">SIX MODELS · V1.1</p>
 <p class="sub">
 暗号学的乱数で数字を生成。
 研究済み構造を維持し、生成結果を監査します。
@@ -82,10 +83,12 @@ h2{font-size:18px}
 <div class="mode-grid">
 <button class="mode-btn active" data-mode="noRepeat">重複なし</button>
 <button class="mode-btn" data-mode="resetEach">毎回リセット</button>
-<button class="mode-btn" data-mode="miniFull">ミニロト Full Coverage</button>
-<button class="mode-btn" data-mode="miniV4">ミニロト V4.0</button>
-<button class="mode-btn" data-mode="bingoFull">BINGO5 Full Coverage</button>
-<button class="mode-btn" data-mode="bingoV4">BINGO5 V4.0</button>
+<button class="mode-btn model-btn" data-mode="miniFull"><span class="model-name">STELLA</span><small>ミニロト · 7口</small></button>
+<button class="mode-btn model-btn" data-mode="miniV4"><span class="model-name">LUNA</span><small>ミニロト · V4.0 · 5口</small></button>
+<button class="mode-btn model-btn" data-mode="bingoFull"><span class="model-name">PRISM</span><small>BINGO5 · 5口</small></button>
+<button class="mode-btn model-btn" data-mode="bingoV4"><span class="model-name">CRYSTAL</span><small>BINGO5 · V4.0 · 5口</small></button>
+<button class="mode-btn model-btn" data-mode="lotto7"><span class="model-name">ORBIT</span><small>ロト7 · 6口</small></button>
+<button class="mode-btn model-btn" data-mode="lotto6"><span class="model-name">AEGIS</span><small>ロト6 · 8口</small></button>
 </div>
 <p id="status" class="status"></p>
 </section>
@@ -121,12 +124,30 @@ h2{font-size:18px}
 <h2>抽選履歴</h2>
 <div id="history"></div>
 </section>
+<section class="card" id="researchCard">
+<h2>LOTTERY MASTER｜6購入モデル研究台帳</h2>
+<p class="note">STELLA・LUNA・PRISM・CRYSTAL・AEGIS・ORBITの6モデル（4つのFull Coverageモデルと2つのV4.0モデル）は購入番号生成用です。V4.0はFull Coverageとは別の研究目的・構造です。モデル名は構造の識別名であり、当せん予測・利益保証ではありません。購入前に予算を確認してください。</p>
+<div id="researchRows"></div>
+<p class="note">制限：固定賞金・公平な抽せんを前提。現実の変動賞金分配、Popularity、Prize Sharing、過去結果による予測性能は認証対象外です。G140は独立再生成した同型構造と既存Exact分布を照合済み。元の代表構造ファイル自体の復元・ハッシュ一致は未完了。</p>
+</section>
 </main>
 
 <script>
 "use strict";
 
 const ALL31=Array.from({length:31},(_,i)=>i+1);
+const ALL37=Array.from({length:37},(_,i)=>i+1);
+const ALL43=Array.from({length:43},(_,i)=>i+1);
+const LOTTO6_G140_EDGES=[[4,6],[5,6],[4,7],[5,7],[6,7]];
+const LOTTO7_G122_EDGES=[[0,1],[0,2],[0,3],[1,2],[1,3]];
+const RESEARCH=[
+ ["STELLA｜ミニロト","7口・31/31・4-edge-star","FINAL FROZEN（定義済み計算証明）","13.8443067253%","実購入：採用"],
+ ["PRISM｜BINGO5","5口・40/40・全配置の分布同値","FINAL FROZEN（数学的同値性）","65.3888%","実購入：採用"],
+ ["AEGIS｜ロト6","8口・43/43・G140","FINAL FROZEN（既存計算報告）","21.2965110538%","購入用：同型復元・原本保全は未完了"],
+ ["ORBIT｜ロト7","6口・37/37・G122","FINAL FROZEN（既存計算報告）","22.4404656928%","購入用：採用"],
+ ["LUNA｜MINERVA V4.0・ミニロト","5口・25数字・重複なし","Champion/FROZEN（5口研究）","別予算クラス","購入用：採用"],
+ ["CRYSTAL｜BINGO MATRIX V4.0・BINGO5","5口・研究済みセル共有構造","Champion/FROZEN（別目的）","非Full Coverage","購入用：採用"]
+];
 const RANGES=Array.from({length:8},(_,c)=>
   Array.from({length:5},(_,i)=>c*5+i+1)
 );
@@ -292,6 +313,60 @@ function makeMiniFull(){
   return t;
 }
 
+function makeLotto6(){
+  const pool=shuffle(ALL43);
+  const rows=Array.from({length:8},()=>[]);
+  let pos=0;
+  for(const [a,b] of LOTTO6_G140_EDGES){
+    const n=pool[pos++];rows[a].push(n);rows[b].push(n);
+  }
+  for(const row of rows)while(row.length<6)row.push(pool[pos++]);
+  if(pos!==43)throw Error("G140 allocation mismatch");
+  return rows.map(row=>row.sort((a,b)=>a-b));
+}
+function auditLotto6(t){
+  if(t.length!==8||t.some(r=>r.length!==6||new Set(r).size!==6||r.some(n=>!Number.isInteger(n)||n<1||n>43)))return false;
+  const u=usage(t);
+  if(u.size!==43||[...u.values()].filter(v=>v===2).length!==5||[...u.values()].filter(v=>v===1).length!==38)return false;
+  const edges=[];
+  for(let i=0;i<8;i++)for(let j=i+1;j<8;j++){
+    const k=overlap(t[i],t[j]);if(k>1)return false;
+    if(k===1)edges.push(`${i},${j}`);
+  }
+  return edges.length===5&&edges.every(e=>LOTTO6_G140_EDGES.some(([a,b])=>e===`${a},${b}`));
+}
+function makeLotto7(){
+  const pool=shuffle(ALL37);
+  const rows=Array.from({length:6},()=>[]);
+  let pos=0;
+  for(const [a,b] of LOTTO7_G122_EDGES){
+    const n=pool[pos++]; rows[a].push(n);rows[b].push(n);
+  }
+  for(const row of rows) while(row.length<7) row.push(pool[pos++]);
+  if(pos!==37)throw Error("G122 allocation mismatch");
+  return rows.map(row=>row.sort((a,b)=>a-b));
+}
+function auditLotto7(t){
+  if(t.length!==6||t.some(r=>r.length!==7||new Set(r).size!==7||r.some(n=>!Number.isInteger(n)||n<1||n>37)))return false;
+  const u=usage(t);
+  if(u.size!==37||[...u.values()].filter(v=>v===2).length!==5||[...u.values()].filter(v=>v===1).length!==32)return false;
+  const edges=[];
+  for(let i=0;i<6;i++)for(let j=i+1;j<6;j++){
+    const k=overlap(t[i],t[j]);if(k>1)return false;
+    if(k===1)edges.push(`${i},${j}`);
+  }
+  return edges.length===5 && edges.every(e=>LOTTO7_G122_EDGES.some(([a,b])=>e===`${a},${b}`));
+}
+function renderResearch(){
+  const root=$("researchRows");root.replaceChildren();
+  for(const [name,structure,status,hit,purchase] of RESEARCH){
+    const el=document.createElement("div");el.className="ticket";
+    const h=document.createElement("strong");h.textContent=name;
+    const d=document.createElement("div");d.className="note";
+    d.textContent=`${structure}｜${status}｜1口以上当せん ${hit}｜${purchase}`;
+    el.append(h,d);root.append(el);
+  }
+}
 function makeBingoFull(){
   const cols=RANGES.map(shuffle);
   return Array.from({length:5},(_,r)=>
@@ -309,31 +384,42 @@ function makeBingoV4(){
   );
 }
 
+const MODEL_VERSION="SIX-MODEL V1.1";
 const modes={
   miniFull:{
-    title:"ミニロト Full Coverage｜7口",
-    description:"31/31 Full Coverage＋4-edge-star",
+    title:"STELLA｜ミニロト・7口",
+    description:"31/31 Full Coverage · 4-edge-star · 購入用。定義済み計算モデルの同率最適構造。",
     generate:makeMiniFull,
     audit:auditMiniFull,
     count:7
   },
+  lotto7:{
+    title:"ORBIT｜ロト7・6口",
+    description:"37/37 Full Coverage・G122同型構造。購入用として表示。利益を保証するものではありません。",
+    generate:makeLotto7,audit:auditLotto7,count:6
+  },
+  lotto6:{
+    title:"AEGIS｜ロト6・8口",
+    description:"43/43 Full Coverage・G140同型構造。既存Exact分布照合済み。購入用として表示。利益を保証するものではありません。",
+    generate:makeLotto6,audit:auditLotto6,count:8
+  },
   miniV4:{
-    title:"ミニロト V4.0｜5口",
-    description:"25数字重複なし・研究済みV4.0型",
+    title:"LUNA｜ミニロト V4.0・5口",
+    description:"25数字重複なし・研究済みV4.0型。購入用。31/31 Full Coverageではありません。",
     generate:makeMiniV4,
     audit:auditMiniV4,
     count:5
   },
   bingoFull:{
-    title:"BINGO5 Full Coverage｜5口",
-    description:"40/40 Full Coverage・全数字1回",
+    title:"PRISM｜BINGO5・5口",
+    description:"40/40 Full Coverage · 各数字1回 · 購入用。Full Coverage内部で全配置が分布同値。",
     generate:makeBingoFull,
     audit:auditBingoFull,
     count:5
   },
   bingoV4:{
-    title:"BINGO5 V4.0｜5口",
-    description:"研究済みセル共有構造を維持",
+    title:"CRYSTAL｜BINGO5 V4.0・5口",
+    description:"研究済みセル共有構造を維持。購入用。40/40 Full Coverageではありません。",
     generate:makeBingoV4,
     audit:auditBingoV4,
     count:5
@@ -481,6 +567,7 @@ $("normalReset").addEventListener("click",resetNormal);
 $("generateBtn").addEventListener("click",generatePortfolio);
 $("portfolioReset").addEventListener("click",resetPortfolio);
 
+renderResearch();
 setMode("noRepeat");
 </script>
 </body>
